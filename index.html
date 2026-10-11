@@ -533,7 +533,7 @@
           </div>
           <div>
             <div class="coord-metric">SIZE</div>
-            <div id="disp-size" class="coord-val">1.45cqi</div>
+            <div id="disp-size" class="coord-val">2.00cqi</div>
           </div>
         </div>
 
@@ -668,33 +668,33 @@
   <script>
     // Initial Calibrated Baseline Registration Coordinates (CQI scaled)
     const DEFAULT_CONFIGS = {
-      'ov-carrier':        { label: 'Carrier (Top Underline)', top: 3.80, left: 4.50, font: 1.45, anchor: 'left' },
-      'ov-name':           { label: 'Customer Name',           top: 3.80, left: 15.00, font: 1.35, anchor: 'left' },
-      'ov-num-area':       { label: 'Phone Area Code',         top: 3.80, left: 40.50, font: 1.35, anchor: 'center' },
-      'ov-num-prefix':     { label: 'Phone Prefix',            top: 3.80, left: 48.00, font: 1.35, anchor: 'center' },
-      'ov-num-line':       { label: 'Phone Line',              top: 3.80, left: 57.00, font: 1.35, anchor: 'center' },
+      'ov-carrier':        { label: 'Carrier (Top Underline)', top: 3.80, left: 4.50, font: 2.00, anchor: 'left' },
+      'ov-name':           { label: 'Customer Name',           top: 3.80, left: 15.00, font: 2.00, anchor: 'left' },
+      'ov-num-area':       { label: 'Phone Area Code',         top: 3.80, left: 40.50, font: 2.00, anchor: 'center' },
+      'ov-num-prefix':     { label: 'Phone Prefix',            top: 3.80, left: 48.00, font: 2.00, anchor: 'center' },
+      'ov-num-line':       { label: 'Phone Line',              top: 3.80, left: 57.00, font: 2.00, anchor: 'center' },
 
-      'ov-plan':           { label: 'Plan Base ($)',           top: 7.20, left: 17.50, font: 1.35, anchor: 'center' },
-      'ov-device':         { label: 'Device Net ($)',          top: 7.20, left: 27.20, font: 1.35, anchor: 'center' },
-      'ov-taxes':          { label: 'Taxes & Fees ($)',        top: 7.20, left: 36.80, font: 1.35, anchor: 'center' },
-      'ov-monthly':        { label: 'Monthly Total Total',     top: 6.80, left: 82.50, font: 1.45, anchor: 'center' },
-      'ov-term':           { label: 'Financing Term (yr)',     top: 6.80, left: 90.80, font: 1.35, anchor: 'center' },
+      'ov-plan':           { label: 'Plan Base ($)',           top: 7.20, left: 17.50, font: 2.00, anchor: 'center' },
+      'ov-device':         { label: 'Device Net ($)',          top: 7.20, left: 27.20, font: 2.00, anchor: 'center' },
+      'ov-taxes':          { label: 'Taxes & Fees ($)',        top: 7.20, left: 36.80, font: 2.00, anchor: 'center' },
+      'ov-monthly':        { label: 'Monthly Total Total',     top: 6.80, left: 82.50, font: 2.00, anchor: 'center' },
+      'ov-term':           { label: 'Financing Term (yr)',     top: 6.80, left: 90.80, font: 2.00, anchor: 'center' },
 
-      'ov-autopay':        { label: 'Autopay Method',          top: 13.80, left: 10.50, font: 1.25, anchor: 'left' },
-      'ov-duedate':        { label: 'First Bill Due (days)',   top: 13.80, left: 60.50, font: 1.35, anchor: 'center' },
+      'ov-autopay':        { label: 'Autopay Method',          top: 13.80, left: 10.50, font: 2.00, anchor: 'left' },
+      'ov-duedate':        { label: 'First Bill Due (days)',   top: 13.80, left: 60.50, font: 2.00, anchor: 'center' },
 
-      'ov-reimbursed':     { label: 'Reimbursed Total',        top: 34.60, left: 40.80, font: 1.35, anchor: 'center' },
-      'ov-nonreimbursed':  { label: 'Non-Reimbursed',          top: 38.00, left: 40.80, font: 1.35, anchor: 'center' },
+      'ov-reimbursed':     { label: 'Reimbursed Total',        top: 34.60, left: 40.80, font: 2.00, anchor: 'center' },
+      'ov-nonreimbursed':  { label: 'Non-Reimbursed',          top: 38.00, left: 40.80, font: 2.00, anchor: 'center' },
 
-      'ov-bill1-actual':   { label: 'Actual Bill 1',           top: 42.20, left: 35.00, font: 1.35, anchor: 'center' },
-      'ov-bill2-actual':   { label: 'Actual Bill 2 (-X)',      top: 42.20, left: 53.50, font: 1.35, anchor: 'center' },
-      'ov-bill3-actual':   { label: 'Actual Bill 3 (-X)',      top: 42.20, left: 71.00, font: 1.35, anchor: 'center' },
-      'ov-bill4-actual':   { label: 'Actual Bill 4 (-X)',      top: 42.20, left: 89.50, font: 1.35, anchor: 'center' },
+      'ov-bill1-actual':   { label: 'Actual Bill 1',           top: 42.20, left: 35.00, font: 2.00, anchor: 'center' },
+      'ov-bill2-actual':   { label: 'Actual Bill 2 (-X)',      top: 42.20, left: 53.50, font: 2.00, anchor: 'center' },
+      'ov-bill3-actual':   { label: 'Actual Bill 3 (-X)',      top: 42.20, left: 71.00, font: 2.00, anchor: 'center' },
+      'ov-bill4-actual':   { label: 'Actual Bill 4 (-X)',      top: 42.20, left: 89.50, font: 2.00, anchor: 'center' },
 
-      'ov-bill1-carrier':  { label: 'Carrier Bill 1 (✓)',      top: 46.20, left: 34.00, font: 1.35, anchor: 'center' },
-      'ov-bill2-carrier':  { label: 'Carrier Bill 2 (Oval)',   top: 46.20, left: 51.50, font: 1.35, anchor: 'center' },
-      'ov-bill3-carrier':  { label: 'Carrier Bill 3 (Oval)',   top: 46.20, left: 69.00, font: 1.35, anchor: 'center' },
-      'ov-bill4-carrier':  { label: 'Carrier Bill 4 (Oval)',   top: 46.20, left: 87.00, font: 1.35, anchor: 'center' }
+      'ov-bill1-carrier':  { label: 'Carrier Bill 1 (✓)',      top: 46.20, left: 34.00, font: 2.00, anchor: 'center' },
+      'ov-bill2-carrier':  { label: 'Carrier Bill 2 (Oval)',   top: 46.20, left: 51.50, font: 2.00, anchor: 'center' },
+      'ov-bill3-carrier':  { label: 'Carrier Bill 3 (Oval)',   top: 46.20, left: 69.00, font: 2.00, anchor: 'center' },
+      'ov-bill4-carrier':  { label: 'Carrier Bill 4 (Oval)',   top: 46.20, left: 87.00, font: 2.00, anchor: 'center' }
     };
 
     let OVERLAY_CONFIGS = JSON.parse(JSON.stringify(DEFAULT_CONFIGS));
