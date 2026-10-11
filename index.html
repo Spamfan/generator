@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Take Home Sheet Coordinate Calibration Lab</title>
+  <style>
+    :root {
+      --bg: #f0f2f5;
+      --card: #ffffff;
+      --primary: #0071dc;
+      --primary-hover: #005bb5;
+      --accent: #2e7d32;
+      --danger: #d93025;
+      --border: #dadddf;
+      --text: #1c1e21;
+      --sub: #606770;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top Navigation Bar */
+    header {
+      background: #1c1e21;
+      color: #fff;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .header-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: -0.2px;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .pill-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 9999px;
+      padding: 6px 14px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      border: 1px solid transparent;
+      user-select: none;
+      text-decoration: none;
+      transition: background-color 0.15s, transform 0.05s;
+    }
+
+    .pill-btn:active {
+      transform: scale(0.97);
+    }
+
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-secondary { background: #3a3b3c; color: #fff; border-color: #555; }
+    .btn-secondary:hover { background: #4e4f50; }
+    .btn-accent { background: var(--accent); color: #fff; }
+
+    /* Main Workspace */
+    .app-layout {
+      display: flex;
+      flex: 1;
+      width: 100%;
+      max-width: 1500px;
+      margin: 0 auto;
+      padding: 12px;
+      gap: 16px;
+      box-sizing: border-box;
+    }
+
+    /* Left Side: Form & Controls */
+    .controls-pane {
+      flex: 0 0 380px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: 14px;
+      padding: 14px;
+      border: 1px solid var(--border);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+
+    .card-title {
+      font-size: 0.85rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 10px;
+      color: var(--sub);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .carrier-tabs {
+      display: flex;
+      background: #e4e6eb;
+      border-radius: 9999px;
+      padding: 3px;
+      gap: 3px;
+      margin-bottom: 10px;
+    }
+
+    .carrier-tab {
+      flex: 1;
+      border: none;
+      background: transparent;
+      padding: 6px;
+      border-radius: 9999px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--sub);
+      cursor: pointer;
+    }
+
+    .carrier-tab.active {
+      background: #fff;
+      color: var(--text);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .form-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .form-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .form-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text);
+      flex: 1;
+    }
+
+    .form-input {
+      flex: 1.3;
+      padding: 6px 10px;
+      font-size: 0.85rem;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      outline: none;
+    }
+
+    .form-input:focus {
+      border-color: var(--primary);
+    }
+
+    /* Calibration Nudge Deck */
+    .cal-deck {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .target-select {
+      width: 100%;
+      padding: 8px 10px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      border: 2px solid var(--primary);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--text);
+      outline: none;
+    }
+
+    .coord-display-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 6px;
+      background: #f8fafc;
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      text-align: center;
+    }
+
+    .coord-metric {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--sub);
+    }
+
+    .coord-val {
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: var(--primary);
+      font-family: monospace;
+    }
+
+    .dpad-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      max-width: 220px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .dpad-btn {
+      height: 44px;
+      border: 1.5px solid var(--border);
+      background: #fff;
+      border-radius: 8px;
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--text);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+    }
+
+    .dpad-btn:active {
+      background: #e4e6eb;
+    }
+
+    .step-pills {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .step-pill {
+      border: 1px solid var(--border);
+      background: #fff;
+      padding: 3px 8px;
+      border-radius: 9999px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .step-pill.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    /* Right Side: Stage Container */
+    .preview-pane {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      overflow: auto;
+      padding-bottom: 80px;
+    }
+
+    /* Zero-Margin Sheet Container matching 8.5 x 11 ratio */
+    .paper-stage {
+      position: relative;
+      width: 100%;
+      max-width: 8.5in;
+      aspect-ratio: 8.5 / 11;
+      background: #ffffff;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+      border: 1px solid var(--border);
+      margin: 0 auto;
+      padding: 0;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    .base-sheet-img {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* VZW / TMO White-out Mask */
+    .sheet-mask {
+      position: absolute;
+      top: 25.5%;
+      left: 0;
+      width: 100%;
+      height: 24.5%;
+      background: #ffffff;
+      z-index: 5;
+      pointer-events: none;
+      display: none;
+    }
+
+    /* Overlay Texts */
+    .overlay-item {
+      position: absolute;
+      z-index: 10;
+      font-family: Arial, Helvetica, sans-serif;
+      font-weight: 700;
+      color: #000000;
+      line-height: 1;
+      white-space: nowrap;
+      cursor: pointer;
+      padding: 2px 4px;
+      border-radius: 4px;
+      transition: background-color 0.1s, outline 0.1s;
+    }
+
+    .overlay-item:hover {
+      background: rgba(0, 113, 220, 0.15);
+    }
+
+    .overlay-item.selected {
+      outline: 2px dashed #0071dc;
+      background: rgba(0, 113, 220, 0.25) !important;
+      z-index: 50;
+    }
+
+    .sub-x {
+      font-size: 0.78em;
+      margin-left: 1px;
+    }
+
+    /* Mobile Sticky Bottom Floating HUD */
+    .mobile-floating-hud {
+      display: none;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(28, 30, 33, 0.95);
+      backdrop-filter: blur(8px);
+      color: #fff;
+      padding: 8px 12px;
+      z-index: 2000;
+      box-shadow: 0 -4px 16px rgba(0,0,0,0.3);
+    }
+
+    @media (max-width: 900px) {
+      .app-layout {
+        flex-direction: column-reverse;
+      }
+      .controls-pane {
+        flex: none;
+        width: 100%;
+      }
+      .mobile-floating-hud {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+    }
+
+    /* Export Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.6);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 3000;
+      padding: 16px;
+    }
+
+    .modal-card {
+      background: #fff;
+      border-radius: 14px;
+      width: 100%;
+      max-width: 600px;
+      padding: 20px;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .code-box {
+      width: 100%;
+      height: 260px;
+      background: #1c1e21;
+      color: #a5d6a7;
+      font-family: monospace;
+      font-size: 0.8rem;
+      padding: 12px;
+      border-radius: 8px;
+      border: none;
+      resize: none;
+    }
+
+    /* Exact Print Rules */
+    @page {
+      size: letter portrait;
+      margin: 0;
+    }
+
+    @media print {
+      header, .controls-pane, .mobile-floating-hud, .modal-overlay {
+        display: none !important;
+      }
+
+      body, html {
+        background: #fff !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        height: 100% !important;
+      }
+
+      .app-layout {
+        padding: 0 !important;
+        margin: 0 !important;
+        max-width: 100% !important;
+      }
+
+      .preview-pane {
+        padding: 0 !important;
+        overflow: visible !important;
+      }
+
+      .paper-stage {
+        max-width: 8.5in !important;
+        width: 8.5in !important;
+        height: 11in !important;
+        max-height: 11in !important;
+        border: none !important;
+        box-shadow: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        page-break-after: avoid;
+        break-after: avoid;
+      }
+
+      .overlay-item {
+        outline: none !important;
+        background: transparent !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-title">Take Home Sheet Coordinate Lab</div>
+    <div class="header-actions">
+      <button id="btn-export" class="pill-btn btn-secondary">Export Specs</button>
+      <button id="btn-print" class="pill-btn btn-primary">Test Print</button>
+    </div>
+  </header>
+
+  <main class="app-layout">
+    <!-- Controls Side -->
+    <aside class="controls-pane">
+      <div class="card cal-deck">
+        <div class="card-title">
+          <span>Active Calibration Target</span>
+          <span id="target-label" style="color: var(--primary);">Carrier</span>
+        </div>
+
+        <select id="target-select" class="target-select"></select>
+
+        <div class="coord-display-row">
+          <div>
+            <div class="coord-metric">TOP (Y)</div>
+            <div id="disp-top" class="coord-val">3.80%</div>
+          </div>
+          <div>
+            <div class="coord-metric">LEFT (X)</div>
+            <div id="disp-left" class="coord-val">4.50%</div>
+          </div>
+          <div>
+            <div class="coord-metric">SIZE</div>
+            <div id="disp-size" class="coord-val">12px</div>
+          </div>
+        </div>
+
+        <div class="dpad-grid">
+          <button class="dpad-btn" id="btn-font-down">A-</button>
+          <button class="dpad-btn" id="btn-up">▲</button>
+          <button class="dpad-btn" id="btn-font-up">A+</button>
+          <button class="dpad-btn" id="btn-left">◀</button>
+          <button class="dpad-btn" id="btn-center" style="font-size:0.75rem;">CTR</button>
+          <button class="dpad-btn" id="btn-right">▶</button>
+          <button class="dpad-btn" id="btn-align-left" style="font-size:0.75rem;">LEFT</button>
+          <button class="dpad-btn" id="btn-down">▼</button>
+          <button class="dpad-btn" id="btn-align-right" style="font-size:0.75rem;">RGHT</button>
+        </div>
+
+        <div class="step-pills">
+          <span style="font-size:0.72rem; font-weight:700; color:var(--sub); align-self:center;">Step:</span>
+          <button class="step-pill" data-step="0.05">0.05%</button>
+          <button class="step-pill active" data-step="0.10">0.10%</button>
+          <button class="step-pill" data-step="0.25">0.25%</button>
+          <button class="step-pill" data-step="0.50">0.50%</button>
+        </div>
+      </div>
+
+      <!-- Test Quote Data Form -->
+      <div class="card">
+        <div class="card-title">Quote Simulation Data</div>
+        <div class="carrier-tabs">
+          <button type="button" class="carrier-tab active" data-carrier="att">AT&T</button>
+          <button type="button" class="carrier-tab" data-carrier="vzw">Verizon</button>
+          <button type="button" class="carrier-tab" data-carrier="tmo">T-Mobile</button>
+        </div>
+
+        <div class="form-row">
+          <label class="form-label">Customer Name</label>
+          <input type="text" id="inp-name" class="form-input" value="First name">
+        </div>
+        <div class="form-row">
+          <label class="form-label">Phone Number</label>
+          <input type="text" id="inp-phone" class="form-input" value="603 - 123 - 4567">
+        </div>
+        <div class="form-row">
+          <label class="form-label">Plan Base ($)</label>
+          <input type="number" id="inp-plan" class="form-input" value="50">
+        </div>
+        <div class="form-row">
+          <label class="form-label">Device Retail /mo ($)</label>
+          <input type="number" id="inp-dev-retail" class="form-input" value="3.00" step="0.01">
+        </div>
+        <div class="form-row">
+          <label class="form-label">Device Credit /mo ($)</label>
+          <input type="number" id="inp-dev-credit" class="form-input" value="0.00" step="0.01">
+        </div>
+        <div class="form-row">
+          <label class="form-label">Taxes & Fees ($)</label>
+          <input type="number" id="inp-taxes" class="form-input" value="8.00" step="0.01">
+        </div>
+        <div class="form-row">
+          <label class="form-label">Financing Term</label>
+          <input type="text" id="inp-term" class="form-input" value="3">
+        </div>
+        <div class="form-row">
+          <label class="form-label">Autopay Method</label>
+          <input type="text" id="inp-autopay" class="form-input" value="CHECKING ACCT">
+        </div>
+        <div class="form-row">
+          <label class="form-label">First Bill Due (days)</label>
+          <input type="number" id="inp-duedate" class="form-input" value="20">
+        </div>
+        <div class="form-row" id="row-mask-toggle">
+          <label class="form-label" style="font-size:0.78rem;">White-out notices?</label>
+          <input type="checkbox" id="chk-mask" style="width:18px; height:18px;">
+        </div>
+      </div>
+    </aside>
+
+    <!-- WYSIWYG Stage -->
+    <section class="preview-pane">
+      <div id="paper-stage" class="paper-stage">
+        <img src="ths3-1.png" alt="Base Sheet" class="base-sheet-img">
+        <div id="sheet-mask" class="sheet-mask"></div>
+        <!-- Dynamic Overlay Elements generated via JS -->
+      </div>
+    </section>
+  </main>
+
+  <!-- Mobile Floating Quick HUD -->
+  <div class="mobile-floating-hud">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <span id="mob-target-text" style="font-size:0.8rem; font-weight:700;">Carrier</span>
+      <span id="mob-coord-text" style="font-size:0.75rem; font-family:monospace; color:#40c4ff;">T: 3.8% L: 4.5%</span>
+    </div>
+    <div style="display:flex; justify-content:space-between; gap:6px;">
+      <button class="dpad-btn" id="mob-left" style="height:36px; flex:1;">◀</button>
+      <button class="dpad-btn" id="mob-up" style="height:36px; flex:1;">▲</button>
+      <button class="dpad-btn" id="mob-down" style="height:36px; flex:1;">▼</button>
+      <button class="dpad-btn" id="mob-right" style="height:36px; flex:1;">▶</button>
+      <button class="dpad-btn" id="mob-fdown" style="height:36px; flex:0.7; font-size:0.75rem;">A-</button>
+      <button class="dpad-btn" id="mob-fup" style="height:36px; flex:0.7; font-size:0.75rem;">A+</button>
+    </div>
+  </div>
+
+  <!-- Export Modal -->
+  <div id="modal-export" class="modal-overlay">
+    <div class="modal-card">
+      <h3 style="font-size:1.1rem; font-weight:800;">Export Calibrated Coordinates</h3>
+      <p style="font-size:0.8rem; color:var(--sub);">Copy and paste these CSS rules directly into <code>styles.css</code> or state tables:</p>
+      <textarea id="export-code" class="code-box" readonly></textarea>
+      <div style="display:flex; justify-content:flex-end; gap:8px;">
+        <button id="btn-copy-code" class="pill-btn btn-primary">Copy CSS</button>
+        <button id="btn-close-modal" class="pill-btn btn-secondary">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Initial Calibrated Baseline Registration Coordinates
+    const OVERLAY_CONFIGS = {
+      'ov-carrier':        { label: 'Carrier (Top Underline)', top: 3.80, left: 4.50, font: 12, anchor: 'left' },
+      'ov-name':           { label: 'Customer Name',           top: 3.80, left: 15.00, font: 11, anchor: 'left' },
+      'ov-num-area':       { label: 'Phone Area Code',         top: 3.80, left: 40.50, font: 11, anchor: 'center' },
+      'ov-num-prefix':     { label: 'Phone Prefix',            top: 3.80, left: 48.00, font: 11, anchor: 'center' },
+      'ov-num-line':       { label: 'Phone Line',              top: 3.80, left: 57.00, font: 11, anchor: 'center' },
+
+      'ov-plan':           { label: 'Plan Base ($)',           top: 7.20, left: 17.50, font: 11, anchor: 'center' },
+      'ov-device':         { label: 'Device Net ($)',          top: 7.20, left: 27.20, font: 11, anchor: 'center' },
+      'ov-taxes':          { label: 'Taxes & Fees ($)',        top: 7.20, left: 36.80, font: 11, anchor: 'center' },
+      'ov-monthly':        { label: 'Monthly Total Total',     top: 6.80, left: 82.50, font: 12, anchor: 'center' },
+      'ov-term':           { label: 'Financing Term (yr)',     top: 6.80, left: 90.80, font: 11, anchor: 'center' },
+
+      'ov-autopay':        { label: 'Autopay Method',          top: 13.80, left: 10.50, font: 10, anchor: 'left' },
+      'ov-duedate':        { label: 'First Bill Due (days)',   top: 13.80, left: 60.50, font: 11, anchor: 'center' },
+
+      'ov-reimbursed':     { label: 'Reimbursed Total',        top: 34.60, left: 40.80, font: 11, anchor: 'center' },
+      'ov-nonreimbursed':  { label: 'Non-Reimbursed',          top: 38.00, left: 40.80, font: 11, anchor: 'center' },
+
+      'ov-bill1-actual':   { label: 'Actual Bill 1',           top: 42.20, left: 35.00, font: 11, anchor: 'center' },
+      'ov-bill2-actual':   { label: 'Actual Bill 2 (-X)',      top: 42.20, left: 53.50, font: 11, anchor: 'center' },
+      'ov-bill3-actual':   { label: 'Actual Bill 3 (-X)',      top: 42.20, left: 71.00, font: 11, anchor: 'center' },
+      'ov-bill4-actual':   { label: 'Actual Bill 4 (-X)',      top: 42.20, left: 89.50, font: 11, anchor: 'center' },
+
+      'ov-bill1-carrier':  { label: 'Carrier Bill 1 (✓)',      top: 46.20, left: 34.00, font: 11, anchor: 'center' },
+      'ov-bill2-carrier':  { label: 'Carrier Bill 2 (Oval)',   top: 46.20, left: 51.50, font: 11, anchor: 'center' },
+      'ov-bill3-carrier':  { label: 'Carrier Bill 3 (Oval)',   top: 46.20, left: 69.00, font: 11, anchor: 'center' },
+      'ov-bill4-carrier':  { label: 'Carrier Bill 4 (Oval)',   top: 46.20, left: 87.00, font: 11, anchor: 'center' }
+    };
+
+    let activeKey = 'ov-carrier';
+    let currentStep = 0.10;
+    let currentCarrier = 'att';
+
+    const paperStage = document.getElementById('paper-stage');
+    const targetSelect = document.getElementById('target-select');
+
+    // Initialize DOM Overlay Elements
+    function buildOverlayElements() {
+      for (const [key, cfg] of Object.entries(OVERLAY_CONFIGS)) {
+        const el = document.createElement('div');
+        el.id = key;
+        el.className = 'overlay-item';
+        el.dataset.key = key;
+        el.addEventListener('click', (e) => {
+          e.stopPropagation();
+          selectTarget(key);
+        });
+        paperStage.appendChild(el);
+
+        const opt = document.createElement('option');
+        opt.value = key;
+        opt.textContent = cfg.label;
+        targetSelect.appendChild(opt);
+      }
+    }
+
+    // Bill Math Engine
+    function calculateValues() {
+      const plan = parseFloat(document.getElementById('inp-plan').value) || 0;
+      const devRetail = parseFloat(document.getElementById('inp-dev-retail').value) || 0;
+      const devCredit = parseFloat(document.getElementById('inp-dev-credit').value) || 0;
+      const taxes = parseFloat(document.getElementById('inp-taxes').value) || 0;
+
+      const devNet = Math.max(0, devRetail - devCredit);
+      const devDiscount = Math.max(0, devCredit);
+      const monthlyTotal = Math.ceil(plan + devNet + taxes);
+
+      const autopayCredit = 10.00;
+      const actFee = 35.00;
+      const reimbursedActual = autopayCredit + actFee + devDiscount;
+      const reimbursedDisplay = Math.floor(reimbursedActual);
+
+      const bill1Actual = Math.ceil(monthlyTotal + reimbursedActual);
+      const carrierBill1 = bill1Actual;
+      const carrierSubsequent = Math.ceil(monthlyTotal + autopayCredit + devDiscount);
+
+      return {
+        plan, devNet, taxes, monthlyTotal,
+        reimbursedDisplay, bill1Actual,
+        carrierBill1, carrierSubsequent
+      };
+    }
+
+    // Render Overlay Text & Style Registrations
+    function updateStage() {
+      const vals = calculateValues();
+      const carrierNames = { att: 'AT&T', vzw: 'Verizon', tmo: 'T-Mobile' };
+
+      const nameVal = document.getElementById('inp-name').value;
+      const phoneDigits = document.getElementById('inp-phone').value.replace(/\D/g, '');
+      const termVal = document.getElementById('inp-term').value;
+      const autopayVal = document.getElementById('inp-autopay').value;
+      const dueDateVal = document.getElementById('inp-duedate').value;
+
+      const textMap = {
+        'ov-carrier': carrierNames[currentCarrier] || 'AT&T',
+        'ov-name': nameVal,
+        'ov-num-area': phoneDigits.slice(0, 3),
+        'ov-num-prefix': phoneDigits.slice(3, 6),
+        'ov-num-line': phoneDigits.slice(6, 10),
+        'ov-plan': vals.plan.toFixed(0),
+        'ov-device': vals.devNet > 0 ? vals.devNet.toFixed(2) : 'N/A',
+        'ov-taxes': vals.taxes.toFixed(2),
+        'ov-monthly': String(vals.monthlyTotal),
+        'ov-term': termVal,
+        'ov-autopay': autopayVal,
+        'ov-duedate': dueDateVal,
+        'ov-reimbursed': String(vals.reimbursedDisplay),
+        'ov-nonreimbursed': 'N/A',
+        'ov-bill1-actual': String(vals.bill1Actual),
+        'ov-bill2-actual': `${vals.monthlyTotal}<span class="sub-x">-X</span>`,
+        'ov-bill3-actual': `${vals.monthlyTotal}<span class="sub-x">-X</span>`,
+        'ov-bill4-actual': `${vals.monthlyTotal}<span class="sub-x">-X</span>`,
+        'ov-bill1-carrier': `${vals.carrierBill1} ✓`,
+        'ov-bill2-carrier': String(vals.carrierSubsequent),
+        'ov-bill3-carrier': String(vals.carrierSubsequent),
+        'ov-bill4-carrier': String(vals.carrierSubsequent)
+      };
+
+      const mask = document.getElementById('sheet-mask');
+      const isMasked = (currentCarrier !== 'att') && document.getElementById('chk-mask').checked;
+      mask.style.display = isMasked ? 'block' : 'none';
+
+      for (const [key, cfg] of Object.entries(OVERLAY_CONFIGS)) {
+        const el = document.getElementById(key);
+        if (!el) continue;
+
+        el.innerHTML = textMap[key] || '';
+        el.style.top = `${cfg.top}%`;
+        el.style.left = `${cfg.left}%`;
+        el.style.fontSize = `${cfg.font}px`;
+
+        if (cfg.anchor === 'center') {
+          el.style.transform = 'translateX(-50%)';
+          el.style.textAlign = 'center';
+        } else if (cfg.anchor === 'right') {
+          el.style.transform = 'translateX(-100%)';
+          el.style.textAlign = 'right';
+        } else {
+          el.style.transform = 'none';
+          el.style.textAlign = 'left';
+        }
+
+        // Hide notice overlays if masked
+        const isNoticeItem = key.startsWith('ov-reimbursed') || key.startsWith('ov-nonreimbursed') || key.startsWith('ov-bill');
+        el.style.display = (isMasked && isNoticeItem) ? 'none' : 'block';
+      }
+
+      syncHUD();
+    }
+
+    function selectTarget(key) {
+      activeKey = key;
+      targetSelect.value = key;
+      document.querySelectorAll('.overlay-item').forEach(el => {
+        el.classList.toggle('selected', el.dataset.key === key);
+      });
+      syncHUD();
+    }
+
+    function syncHUD() {
+      const cfg = OVERLAY_CONFIGS[activeKey];
+      if (!cfg) return;
+
+      document.getElementById('target-label').textContent = cfg.label;
+      document.getElementById('disp-top').textContent = `${cfg.top.toFixed(2)}%`;
+      document.getElementById('disp-left').textContent = `${cfg.left.toFixed(2)}%`;
+      document.getElementById('disp-size').textContent = `${cfg.font}px`;
+
+      // Mobile HUD
+      document.getElementById('mob-target-text').textContent = cfg.label;
+      document.getElementById('mob-coord-text').textContent = `T: ${cfg.top.toFixed(2)}% L: ${cfg.left.toFixed(2)}%`;
+    }
+
+    function nudge(dTop, dLeft, dFont = 0) {
+      const cfg = OVERLAY_CONFIGS[activeKey];
+      if (!cfg) return;
+      cfg.top = Math.round((cfg.top + dTop) * 100) / 100;
+      cfg.left = Math.round((cfg.left + dLeft) * 100) / 100;
+      cfg.font = Math.max(6, cfg.font + dFont);
+      updateStage();
+    }
+
+    function setAnchor(anchor) {
+      const cfg = OVERLAY_CONFIGS[activeKey];
+      if (!cfg) return;
+      cfg.anchor = anchor;
+      updateStage();
+    }
+
+    // Export Modal Code Generator
+    function generateExportCode() {
+      let css = '/* Take Home Sheet Overlays - Calibrated Values */\n';
+      for (const [key, cfg] of Object.entries(OVERLAY_CONFIGS)) {
+        let alignRule = 'text-align: left;';
+        let transformRule = 'none';
+        if (cfg.anchor === 'center') {
+          alignRule = 'text-align: center;';
+          transformRule = 'translateX(-50%)';
+        } else if (cfg.anchor === 'right') {
+          alignRule = 'text-align: right;';
+          transformRule = 'translateX(-100%)';
+        }
+        css += `.${key} {\n  top: ${cfg.top.toFixed(2)}%;\n  left: ${cfg.left.toFixed(2)}%;\n  font-size: ${cfg.font}px;\n  transform: ${transformRule};\n  ${alignRule}\n}\n\n`;
+      }
+      return css;
+    }
+
+    // Event Handlers
+    targetSelect.addEventListener('change', (e) => selectTarget(e.target.value));
+
+    document.querySelectorAll('.step-pill').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.step-pill').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentStep = parseFloat(btn.dataset.step) || 0.10;
+      });
+    });
+
+    // D-Pad Desktop & Mobile bindings
+    document.getElementById('btn-up').addEventListener('click', () => nudge(-currentStep, 0));
+    document.getElementById('btn-down').addEventListener('click', () => nudge(currentStep, 0));
+    document.getElementById('btn-left').addEventListener('click', () => nudge(0, -currentStep));
+    document.getElementById('btn-right').addEventListener('click', () => nudge(0, currentStep));
+    document.getElementById('btn-font-up').addEventListener('click', () => nudge(0, 0, 1));
+    document.getElementById('btn-font-down').addEventListener('click', () => nudge(0, 0, -1));
+    document.getElementById('btn-center').addEventListener('click', () => setAnchor('center'));
+    document.getElementById('btn-align-left').addEventListener('click', () => setAnchor('left'));
+    document.getElementById('btn-align-right').addEventListener('click', () => setAnchor('right'));
+
+    document.getElementById('mob-up').addEventListener('click', () => nudge(-currentStep, 0));
+    document.getElementById('mob-down').addEventListener('click', () => nudge(currentStep, 0));
+    document.getElementById('mob-left').addEventListener('click', () => nudge(0, -currentStep));
+    document.getElementById('mob-right').addEventListener('click', () => nudge(0, currentStep));
+    document.getElementById('mob-fup').addEventListener('click', () => nudge(0, 0, 1));
+    document.getElementById('mob-fdown').addEventListener('click', () => nudge(0, 0, -1));
+
+    // Keyboard Arrow Nudging
+    window.addEventListener('keydown', (e) => {
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
+      if (e.key === 'ArrowUp') { e.preventDefault(); nudge(-currentStep, 0); }
+      if (e.key === 'ArrowDown') { e.preventDefault(); nudge(currentStep, 0); }
+      if (e.key === 'ArrowLeft') { e.preventDefault(); nudge(0, -currentStep); }
+      if (e.key === 'ArrowRight') { e.preventDefault(); nudge(0, currentStep); }
+    });
+
+    // Inputs Live Bind
+    document.querySelectorAll('.form-input, #chk-mask').forEach(inp => {
+      inp.addEventListener('input', updateStage);
+    });
+
+    // Carrier Tabs
+    document.querySelectorAll('.carrier-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.carrier-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        currentCarrier = tab.dataset.carrier;
+        document.getElementById('chk-mask').checked = (currentCarrier !== 'att');
+        updateStage();
+      });
+    });
+
+    // Print & Export Modals
+    document.getElementById('btn-print').addEventListener('click', () => window.print());
+    document.getElementById('btn-export').addEventListener('click', () => {
+      document.getElementById('export-code').value = generateExportCode();
+      document.getElementById('modal-export').style.display = 'flex';
+    });
+    document.getElementById('btn-close-modal').addEventListener('click', () => {
+      document.getElementById('modal-export').style.display = 'none';
+    });
+    document.getElementById('btn-copy-code').addEventListener('click', () => {
+      navigator.clipboard.writeText(document.getElementById('export-code').value);
+      alert('CSS copied to clipboard!');
+    });
+
+    // Bootstrap
+    buildOverlayElements();
+    selectTarget('ov-carrier');
+    updateStage();
+  </script>
+</body>
+</html>
