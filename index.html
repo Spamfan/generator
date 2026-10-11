@@ -533,7 +533,7 @@
           </div>
           <div>
             <div class="coord-metric">SIZE</div>
-            <div id="disp-size" class="coord-val">12px</div>
+            <div id="disp-size" class="coord-val">1.45cqi</div>
           </div>
         </div>
 
@@ -556,6 +556,8 @@
           <button class="step-pill" data-step="0.25">0.25%</button>
           <button class="step-pill" data-step="0.50">0.50%</button>
         </div>
+
+        <button id="btn-open-reset" class="pill-btn" style="background:#fde8e8; color:var(--danger); border:1px solid #f8b4b4; margin-top:6px; width:100%;">Reset to Defaults</button>
       </div>
 
       <!-- Test Quote Data Form -->
@@ -649,9 +651,23 @@
     </div>
   </div>
 
+  <!-- Reset Confirmation Modal -->
+  <div id="modal-reset" class="modal-overlay">
+    <div class="modal-card" style="max-width: 420px; text-align: center;">
+      <h3 style="font-size:1.15rem; font-weight:800; color:var(--danger);">Reset Calibration & Data?</h3>
+      <p style="font-size:0.85rem; color:var(--sub); line-height: 1.4;">
+        Hey, are you sure? This will wipe all stored calibrations from browser storage and restore factory defaults.
+      </p>
+      <div style="display:flex; justify-content:center; gap:10px; margin-top:8px;">
+        <button id="btn-cancel-reset" class="pill-btn btn-secondary">Cancel</button>
+        <button id="btn-confirm-reset" class="pill-btn" style="background:var(--danger); color:#fff;">Yes, Erase & Reset</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     // Initial Calibrated Baseline Registration Coordinates (CQI scaled)
-    const OVERLAY_CONFIGS = {
+    const DEFAULT_CONFIGS = {
       'ov-carrier':        { label: 'Carrier (Top Underline)', top: 3.80, left: 4.50, font: 1.45, anchor: 'left' },
       'ov-name':           { label: 'Customer Name',           top: 3.80, left: 15.00, font: 1.35, anchor: 'left' },
       'ov-num-area':       { label: 'Phone Area Code',         top: 3.80, left: 40.50, font: 1.35, anchor: 'center' },
@@ -680,6 +696,10 @@
       'ov-bill3-carrier':  { label: 'Carrier Bill 3 (Oval)',   top: 46.20, left: 69.00, font: 1.35, anchor: 'center' },
       'ov-bill4-carrier':  { label: 'Carrier Bill 4 (Oval)',   top: 46.20, left: 87.00, font: 1.35, anchor: 'center' }
     };
+
+    let OVERLAY_CONFIGS = JSON.parse(JSON.stringify(DEFAULT_CONFIGS));
+    const STORAGE_KEY_CONFIGS = 'THS_CAL_CONFIGS';
+    const STORAGE_KEY_INPUTS = 'THS_SIM_DATA';
 
     let activeKey = 'ov-carrier';
     let currentStep = 0.10;
@@ -826,6 +846,96 @@
       document.getElementById('mob-coord-text').textContent = `T: ${cfg.top.toFixed(2)}% L: ${cfg.left.toFixed(2)}%`;
     }
 
+    function saveToStorage() {
+      try {
+        localStorage.setItem(STORAGE_KEY_CONFIGS, JSON.stringify(OVERLAY_CONFIGS));
+        const inputsData = {
+          carrier: currentCarrier,
+          name: document.getElementById('inp-name').value,
+          phone: document.getElementById('inp-phone').value,
+          plan: document.getElementById('inp-plan').value,
+          devRetail: document.getElementById('inp-dev-retail').value,
+          devCredit: document.getElementById('inp-dev-credit').value,
+          taxes: document.getElementById('inp-taxes').value,
+          term: document.getElementById('inp-term').value,
+          autopay: document.getElementById('inp-autopay').value,
+          dueDate: document.getElementById('inp-duedate').value,
+          maskChecked: document.getElementById('chk-mask').checked
+        };
+        localStorage.setItem(STORAGE_KEY_INPUTS, JSON.stringify(inputsData));
+      } catch (err) {
+        console.warn('Unable to persist to localStorage', err);
+      }
+    }
+
+    function loadFromStorage() {
+      try {
+        const storedConfigs = localStorage.getItem(STORAGE_KEY_CONFIGS);
+        if (storedConfigs) {
+          const parsed = JSON.parse(storedConfigs);
+          for (const key of Object.keys(DEFAULT_CONFIGS)) {
+            if (parsed[key]) {
+              OVERLAY_CONFIGS[key] = { ...DEFAULT_CONFIGS[key], ...parsed[key] };
+            }
+          }
+        }
+
+        const storedInputs = localStorage.getItem(STORAGE_KEY_INPUTS);
+        if (storedInputs) {
+          const parsed = JSON.parse(storedInputs);
+          if (parsed.carrier) {
+            currentCarrier = parsed.carrier;
+            document.querySelectorAll('.carrier-tab').forEach(t => {
+              t.classList.toggle('active', t.dataset.carrier === currentCarrier);
+            });
+          }
+          if (parsed.name !== undefined) document.getElementById('inp-name').value = parsed.name;
+          if (parsed.phone !== undefined) document.getElementById('inp-phone').value = parsed.phone;
+          if (parsed.plan !== undefined) document.getElementById('inp-plan').value = parsed.plan;
+          if (parsed.devRetail !== undefined) document.getElementById('inp-dev-retail').value = parsed.devRetail;
+          if (parsed.devCredit !== undefined) document.getElementById('inp-dev-credit').value = parsed.devCredit;
+          if (parsed.taxes !== undefined) document.getElementById('inp-taxes').value = parsed.taxes;
+          if (parsed.term !== undefined) document.getElementById('inp-term').value = parsed.term;
+          if (parsed.autopay !== undefined) document.getElementById('inp-autopay').value = parsed.autopay;
+          if (parsed.dueDate !== undefined) document.getElementById('inp-duedate').value = parsed.dueDate;
+          if (parsed.maskChecked !== undefined) document.getElementById('chk-mask').checked = parsed.maskChecked;
+        }
+      } catch (err) {
+        console.warn('Unable to load from localStorage', err);
+      }
+    }
+
+    function generateExportCode() {
+      const lines = [
+        '/* Calibrated Sheet Coordinates (Container Query CQI Units) */',
+        '.paper-stage {',
+        '  container-type: inline-size;',
+        '  position: relative;',
+        '  width: 100%;',
+        '  aspect-ratio: 8.5 / 11;',
+        '}',
+        ''
+      ];
+
+      for (const [key, cfg] of Object.entries(OVERLAY_CONFIGS)) {
+        let transformStr = 'translateY(-50%)';
+        if (cfg.anchor === 'center') transformStr = 'translate(-50%, -50%)';
+        if (cfg.anchor === 'right') transformStr = 'translate(-100%, -50%)';
+
+        lines.push(`#${key} {`);
+        lines.push(`  position: absolute;`);
+        lines.push(`  top: ${cfg.top.toFixed(2)}%;`);
+        lines.push(`  left: ${cfg.left.toFixed(2)}%;`);
+        lines.push(`  font-size: ${cfg.font.toFixed(2)}cqi;`);
+        lines.push(`  transform: ${transformStr};`);
+        lines.push(`  text-align: ${cfg.anchor};`);
+        lines.push(`}`);
+        lines.push('');
+      }
+
+      return lines.join('\n');
+    }
+
     function nudge(dTop, dLeft, dFont = 0) {
       const cfg = OVERLAY_CONFIGS[activeKey];
       if (!cfg) return;
@@ -833,6 +943,7 @@
       cfg.left = Math.round((cfg.left + dLeft) * 100) / 100;
       cfg.font = Math.max(0.5, Math.round((cfg.font + dFont) * 100) / 100);
       updateStage();
+      saveToStorage();
     }
 
     function setAnchor(anchor) {
@@ -840,6 +951,7 @@
       if (!cfg) return;
       cfg.anchor = anchor;
       updateStage();
+      saveToStorage();
     }
 
     // Auto-repeat on hold engine
@@ -885,6 +997,20 @@
     bindRepeatAction(document.getElementById('mob-fup'), () => nudge(0, 0, 0.05));
     bindRepeatAction(document.getElementById('mob-fdown'), () => nudge(0, 0, -0.05));
 
+    // Target Selection Dropdown Change
+    targetSelect.addEventListener('change', (e) => {
+      selectTarget(e.target.value);
+    });
+
+    // Step Pills
+    document.querySelectorAll('.step-pill').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.step-pill').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentStep = parseFloat(btn.dataset.step) || 0.10;
+      });
+    });
+
     // Keyboard Arrow Nudging
     window.addEventListener('keydown', (e) => {
       if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
@@ -896,7 +1022,10 @@
 
     // Inputs Live Bind
     document.querySelectorAll('.form-input, #chk-mask').forEach(inp => {
-      inp.addEventListener('input', updateStage);
+      inp.addEventListener('input', () => {
+        updateStage();
+        saveToStorage();
+      });
     });
 
     // Carrier Tabs
@@ -907,6 +1036,7 @@
         currentCarrier = tab.dataset.carrier;
         document.getElementById('chk-mask').checked = (currentCarrier !== 'att');
         updateStage();
+        saveToStorage();
       });
     });
 
@@ -924,7 +1054,49 @@
       alert('CSS copied to clipboard!');
     });
 
+    // Reset Modal Flow
+    const resetModal = document.getElementById('modal-reset');
+    document.getElementById('btn-open-reset').addEventListener('click', () => {
+      resetModal.style.display = 'flex';
+    });
+    document.getElementById('btn-cancel-reset').addEventListener('click', () => {
+      resetModal.style.display = 'none';
+    });
+    document.getElementById('btn-confirm-reset').addEventListener('click', () => {
+      localStorage.removeItem(STORAGE_KEY_CONFIGS);
+      localStorage.removeItem(STORAGE_KEY_INPUTS);
+      OVERLAY_CONFIGS = JSON.parse(JSON.stringify(DEFAULT_CONFIGS));
+
+      // Reset form default values
+      document.getElementById('inp-name').value = 'First name';
+      document.getElementById('inp-phone').value = '603 - 123 - 4567';
+      document.getElementById('inp-plan').value = '50';
+      document.getElementById('inp-dev-retail').value = '3.00';
+      document.getElementById('inp-dev-credit').value = '0.00';
+      document.getElementById('inp-taxes').value = '8.00';
+      document.getElementById('inp-term').value = '3';
+      document.getElementById('inp-autopay').value = 'CHECKING ACCT';
+      document.getElementById('inp-duedate').value = '20';
+      document.getElementById('chk-mask').checked = false;
+
+      currentCarrier = 'att';
+      document.querySelectorAll('.carrier-tab').forEach(t => {
+        t.classList.toggle('active', t.dataset.carrier === 'att');
+      });
+
+      resetModal.style.display = 'none';
+      updateStage();
+    });
+
+    // Dismiss modals when clicking backdrop
+    [document.getElementById('modal-export'), resetModal].forEach(m => {
+      m.addEventListener('click', (e) => {
+        if (e.target === m) m.style.display = 'none';
+      });
+    });
+
     // Bootstrap
+    loadFromStorage();
     buildOverlayElements();
     selectTarget('ov-carrier');
     updateStage();
