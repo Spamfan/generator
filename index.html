@@ -292,6 +292,7 @@
       width: 100%;
       max-width: 8.5in;
       aspect-ratio: 8.5 / 11;
+      container-type: inline-size;
       background: #ffffff;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
       border: 1px solid var(--border);
@@ -335,8 +336,9 @@
       line-height: 1;
       white-space: nowrap;
       cursor: pointer;
-      padding: 2px 4px;
-      border-radius: 4px;
+      padding: 0;
+      margin: 0;
+      border-radius: 2px;
       transition: background-color 0.1s, outline 0.1s;
     }
 
@@ -441,6 +443,7 @@
         margin: 0 !important;
         padding: 0 !important;
         height: 100% !important;
+        overflow: hidden !important;
       }
 
       .app-layout {
@@ -457,14 +460,14 @@
       .paper-stage {
         max-width: 8.5in !important;
         width: 8.5in !important;
-        height: 11in !important;
-        max-height: 11in !important;
+        height: 100% !important;
+        max-height: 100vh !important;
         border: none !important;
         box-shadow: none !important;
         margin: 0 !important;
         padding: 0 !important;
-        page-break-after: avoid;
-        break-after: avoid;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
       }
 
       .overlay-item {
@@ -623,35 +626,35 @@
   </div>
 
   <script>
-    // Initial Calibrated Baseline Registration Coordinates
+    // Initial Calibrated Baseline Registration Coordinates (CQI scaled)
     const OVERLAY_CONFIGS = {
-      'ov-carrier':        { label: 'Carrier (Top Underline)', top: 3.80, left: 4.50, font: 12, anchor: 'left' },
-      'ov-name':           { label: 'Customer Name',           top: 3.80, left: 15.00, font: 11, anchor: 'left' },
-      'ov-num-area':       { label: 'Phone Area Code',         top: 3.80, left: 40.50, font: 11, anchor: 'center' },
-      'ov-num-prefix':     { label: 'Phone Prefix',            top: 3.80, left: 48.00, font: 11, anchor: 'center' },
-      'ov-num-line':       { label: 'Phone Line',              top: 3.80, left: 57.00, font: 11, anchor: 'center' },
+      'ov-carrier':        { label: 'Carrier (Top Underline)', top: 3.80, left: 4.50, font: 1.45, anchor: 'left' },
+      'ov-name':           { label: 'Customer Name',           top: 3.80, left: 15.00, font: 1.35, anchor: 'left' },
+      'ov-num-area':       { label: 'Phone Area Code',         top: 3.80, left: 40.50, font: 1.35, anchor: 'center' },
+      'ov-num-prefix':     { label: 'Phone Prefix',            top: 3.80, left: 48.00, font: 1.35, anchor: 'center' },
+      'ov-num-line':       { label: 'Phone Line',              top: 3.80, left: 57.00, font: 1.35, anchor: 'center' },
 
-      'ov-plan':           { label: 'Plan Base ($)',           top: 7.20, left: 17.50, font: 11, anchor: 'center' },
-      'ov-device':         { label: 'Device Net ($)',          top: 7.20, left: 27.20, font: 11, anchor: 'center' },
-      'ov-taxes':          { label: 'Taxes & Fees ($)',        top: 7.20, left: 36.80, font: 11, anchor: 'center' },
-      'ov-monthly':        { label: 'Monthly Total Total',     top: 6.80, left: 82.50, font: 12, anchor: 'center' },
-      'ov-term':           { label: 'Financing Term (yr)',     top: 6.80, left: 90.80, font: 11, anchor: 'center' },
+      'ov-plan':           { label: 'Plan Base ($)',           top: 7.20, left: 17.50, font: 1.35, anchor: 'center' },
+      'ov-device':         { label: 'Device Net ($)',          top: 7.20, left: 27.20, font: 1.35, anchor: 'center' },
+      'ov-taxes':          { label: 'Taxes & Fees ($)',        top: 7.20, left: 36.80, font: 1.35, anchor: 'center' },
+      'ov-monthly':        { label: 'Monthly Total Total',     top: 6.80, left: 82.50, font: 1.45, anchor: 'center' },
+      'ov-term':           { label: 'Financing Term (yr)',     top: 6.80, left: 90.80, font: 1.35, anchor: 'center' },
 
-      'ov-autopay':        { label: 'Autopay Method',          top: 13.80, left: 10.50, font: 10, anchor: 'left' },
-      'ov-duedate':        { label: 'First Bill Due (days)',   top: 13.80, left: 60.50, font: 11, anchor: 'center' },
+      'ov-autopay':        { label: 'Autopay Method',          top: 13.80, left: 10.50, font: 1.25, anchor: 'left' },
+      'ov-duedate':        { label: 'First Bill Due (days)',   top: 13.80, left: 60.50, font: 1.35, anchor: 'center' },
 
-      'ov-reimbursed':     { label: 'Reimbursed Total',        top: 34.60, left: 40.80, font: 11, anchor: 'center' },
-      'ov-nonreimbursed':  { label: 'Non-Reimbursed',          top: 38.00, left: 40.80, font: 11, anchor: 'center' },
+      'ov-reimbursed':     { label: 'Reimbursed Total',        top: 34.60, left: 40.80, font: 1.35, anchor: 'center' },
+      'ov-nonreimbursed':  { label: 'Non-Reimbursed',          top: 38.00, left: 40.80, font: 1.35, anchor: 'center' },
 
-      'ov-bill1-actual':   { label: 'Actual Bill 1',           top: 42.20, left: 35.00, font: 11, anchor: 'center' },
-      'ov-bill2-actual':   { label: 'Actual Bill 2 (-X)',      top: 42.20, left: 53.50, font: 11, anchor: 'center' },
-      'ov-bill3-actual':   { label: 'Actual Bill 3 (-X)',      top: 42.20, left: 71.00, font: 11, anchor: 'center' },
-      'ov-bill4-actual':   { label: 'Actual Bill 4 (-X)',      top: 42.20, left: 89.50, font: 11, anchor: 'center' },
+      'ov-bill1-actual':   { label: 'Actual Bill 1',           top: 42.20, left: 35.00, font: 1.35, anchor: 'center' },
+      'ov-bill2-actual':   { label: 'Actual Bill 2 (-X)',      top: 42.20, left: 53.50, font: 1.35, anchor: 'center' },
+      'ov-bill3-actual':   { label: 'Actual Bill 3 (-X)',      top: 42.20, left: 71.00, font: 1.35, anchor: 'center' },
+      'ov-bill4-actual':   { label: 'Actual Bill 4 (-X)',      top: 42.20, left: 89.50, font: 1.35, anchor: 'center' },
 
-      'ov-bill1-carrier':  { label: 'Carrier Bill 1 (✓)',      top: 46.20, left: 34.00, font: 11, anchor: 'center' },
-      'ov-bill2-carrier':  { label: 'Carrier Bill 2 (Oval)',   top: 46.20, left: 51.50, font: 11, anchor: 'center' },
-      'ov-bill3-carrier':  { label: 'Carrier Bill 3 (Oval)',   top: 46.20, left: 69.00, font: 11, anchor: 'center' },
-      'ov-bill4-carrier':  { label: 'Carrier Bill 4 (Oval)',   top: 46.20, left: 87.00, font: 11, anchor: 'center' }
+      'ov-bill1-carrier':  { label: 'Carrier Bill 1 (✓)',      top: 46.20, left: 34.00, font: 1.35, anchor: 'center' },
+      'ov-bill2-carrier':  { label: 'Carrier Bill 2 (Oval)',   top: 46.20, left: 51.50, font: 1.35, anchor: 'center' },
+      'ov-bill3-carrier':  { label: 'Carrier Bill 3 (Oval)',   top: 46.20, left: 69.00, font: 1.35, anchor: 'center' },
+      'ov-bill4-carrier':  { label: 'Carrier Bill 4 (Oval)',   top: 46.20, left: 87.00, font: 1.35, anchor: 'center' }
     };
 
     let activeKey = 'ov-carrier';
@@ -755,16 +758,16 @@
         el.innerHTML = textMap[key] || '';
         el.style.top = `${cfg.top}%`;
         el.style.left = `${cfg.left}%`;
-        el.style.fontSize = `${cfg.font}px`;
+        el.style.fontSize = `${cfg.font}cqi`;
 
         if (cfg.anchor === 'center') {
-          el.style.transform = 'translateX(-50%)';
+          el.style.transform = 'translate(-50%, -50%)';
           el.style.textAlign = 'center';
         } else if (cfg.anchor === 'right') {
-          el.style.transform = 'translateX(-100%)';
+          el.style.transform = 'translate(-100%, -50%)';
           el.style.textAlign = 'right';
         } else {
-          el.style.transform = 'none';
+          el.style.transform = 'translateY(-50%)';
           el.style.textAlign = 'left';
         }
 
@@ -792,7 +795,7 @@
       document.getElementById('target-label').textContent = cfg.label;
       document.getElementById('disp-top').textContent = `${cfg.top.toFixed(2)}%`;
       document.getElementById('disp-left').textContent = `${cfg.left.toFixed(2)}%`;
-      document.getElementById('disp-size').textContent = `${cfg.font}px`;
+      document.getElementById('disp-size').textContent = `${cfg.font.toFixed(2)}cqi`;
 
       // Mobile HUD
       document.getElementById('mob-target-text').textContent = cfg.label;
@@ -804,7 +807,7 @@
       if (!cfg) return;
       cfg.top = Math.round((cfg.top + dTop) * 100) / 100;
       cfg.left = Math.round((cfg.left + dLeft) * 100) / 100;
-      cfg.font = Math.max(6, cfg.font + dFont);
+      cfg.font = Math.max(0.5, Math.round((cfg.font + dFont) * 100) / 100);
       updateStage();
     }
 
@@ -815,52 +818,48 @@
       updateStage();
     }
 
-    // Export Modal Code Generator
-    function generateExportCode() {
-      let css = '/* Take Home Sheet Overlays - Calibrated Values */\n';
-      for (const [key, cfg] of Object.entries(OVERLAY_CONFIGS)) {
-        let alignRule = 'text-align: left;';
-        let transformRule = 'none';
-        if (cfg.anchor === 'center') {
-          alignRule = 'text-align: center;';
-          transformRule = 'translateX(-50%)';
-        } else if (cfg.anchor === 'right') {
-          alignRule = 'text-align: right;';
-          transformRule = 'translateX(-100%)';
-        }
-        css += `.${key} {\n  top: ${cfg.top.toFixed(2)}%;\n  left: ${cfg.left.toFixed(2)}%;\n  font-size: ${cfg.font}px;\n  transform: ${transformRule};\n  ${alignRule}\n}\n\n`;
-      }
-      return css;
+    // Auto-repeat on hold engine
+    function bindRepeatAction(el, actionFn) {
+      if (!el) return;
+      let timer = null;
+      let interval = null;
+
+      const start = (e) => {
+        if (e.cancelable) e.preventDefault();
+        actionFn();
+        timer = setTimeout(() => {
+          interval = setInterval(actionFn, 50);
+        }, 380);
+      };
+
+      const stop = () => {
+        if (timer) { clearTimeout(timer); timer = null; }
+        if (interval) { clearInterval(interval); interval = null; }
+      };
+
+      el.addEventListener('pointerdown', start);
+      el.addEventListener('pointerup', stop);
+      el.addEventListener('pointercancel', stop);
+      el.addEventListener('pointerleave', stop);
     }
 
-    // Event Handlers
-    targetSelect.addEventListener('change', (e) => selectTarget(e.target.value));
+    bindRepeatAction(document.getElementById('btn-up'), () => nudge(-currentStep, 0));
+    bindRepeatAction(document.getElementById('btn-down'), () => nudge(currentStep, 0));
+    bindRepeatAction(document.getElementById('btn-left'), () => nudge(0, -currentStep));
+    bindRepeatAction(document.getElementById('btn-right'), () => nudge(0, currentStep));
+    bindRepeatAction(document.getElementById('btn-font-up'), () => nudge(0, 0, 0.05));
+    bindRepeatAction(document.getElementById('btn-font-down'), () => nudge(0, 0, -0.05));
 
-    document.querySelectorAll('.step-pill').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.step-pill').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        currentStep = parseFloat(btn.dataset.step) || 0.10;
-      });
-    });
-
-    // D-Pad Desktop & Mobile bindings
-    document.getElementById('btn-up').addEventListener('click', () => nudge(-currentStep, 0));
-    document.getElementById('btn-down').addEventListener('click', () => nudge(currentStep, 0));
-    document.getElementById('btn-left').addEventListener('click', () => nudge(0, -currentStep));
-    document.getElementById('btn-right').addEventListener('click', () => nudge(0, currentStep));
-    document.getElementById('btn-font-up').addEventListener('click', () => nudge(0, 0, 1));
-    document.getElementById('btn-font-down').addEventListener('click', () => nudge(0, 0, -1));
     document.getElementById('btn-center').addEventListener('click', () => setAnchor('center'));
     document.getElementById('btn-align-left').addEventListener('click', () => setAnchor('left'));
     document.getElementById('btn-align-right').addEventListener('click', () => setAnchor('right'));
 
-    document.getElementById('mob-up').addEventListener('click', () => nudge(-currentStep, 0));
-    document.getElementById('mob-down').addEventListener('click', () => nudge(currentStep, 0));
-    document.getElementById('mob-left').addEventListener('click', () => nudge(0, -currentStep));
-    document.getElementById('mob-right').addEventListener('click', () => nudge(0, currentStep));
-    document.getElementById('mob-fup').addEventListener('click', () => nudge(0, 0, 1));
-    document.getElementById('mob-fdown').addEventListener('click', () => nudge(0, 0, -1));
+    bindRepeatAction(document.getElementById('mob-up'), () => nudge(-currentStep, 0));
+    bindRepeatAction(document.getElementById('mob-down'), () => nudge(currentStep, 0));
+    bindRepeatAction(document.getElementById('mob-left'), () => nudge(0, -currentStep));
+    bindRepeatAction(document.getElementById('mob-right'), () => nudge(0, currentStep));
+    bindRepeatAction(document.getElementById('mob-fup'), () => nudge(0, 0, 0.05));
+    bindRepeatAction(document.getElementById('mob-fdown'), () => nudge(0, 0, -0.05));
 
     // Keyboard Arrow Nudging
     window.addEventListener('keydown', (e) => {
